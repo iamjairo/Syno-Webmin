@@ -12,5 +12,4 @@ done
 
 /bin/rm -f /var/packages/webmin/target/var/miniserv.pid
 /bin/rm -f /var/log/webmin/miniserv.pid
-
 exit 0

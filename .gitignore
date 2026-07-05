@@ -1,0 +1,5 @@
+dist/
+*.spk
+.DS_Store
+src/webmin/
+*.tar.gz

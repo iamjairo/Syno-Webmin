@@ -1,0 +1,47 @@
+#!/bin/sh
+
+PKG="webmin"
+TARGET="/var/packages/${PKG}/target"
+ENABLED="/var/packages/${PKG}/enabled"
+START="${TARGET}/etc/start"
+STOP="${TARGET}/etc/stop"
+
+case "$1" in
+  start)
+    touch "$ENABLED" 2>/dev/null || true
+    if /bin/ps aux | /bin/grep '[m]iniserv.pl' >/dev/null 2>&1; then
+      exit 0
+    fi
+    cd "${TARGET}/etc" || exit 1
+    ./start
+    exit $?
+    ;;
+
+  stop)
+    rm -f "$ENABLED" 2>/dev/null || true
+    if [ -x "$STOP" ]; then
+      cd "${TARGET}/etc" || exit 1
+      ./stop
+    fi
+    if /bin/ps aux | /bin/grep '[m]iniserv.pl' >/dev/null 2>&1; then
+      exit 1
+    fi
+    exit 0
+    ;;
+
+  status)
+    if /bin/ps aux | /bin/grep '[m]iniserv.pl' >/dev/null 2>&1; then
+      exit 0
+    fi
+    exit 1
+    ;;
+
+  log)
+    exit 0
+    ;;
+
+  *)
+    echo "Usage: $0 {start|stop|status|log}"
+    exit 1
+    ;;
+esac

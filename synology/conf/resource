@@ -1,8 +1,4 @@
 {
-  "usr-local-linker": {
-    "bin": [],
-    "lib": []
-  },
   "service": {
     "is_startable": true
   }

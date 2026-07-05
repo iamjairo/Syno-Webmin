@@ -1,4 +1,4 @@
-name: Build SPK
+name: Build Webmin SPK
 
 on:
   workflow_dispatch:
@@ -9,24 +9,40 @@ on:
 jobs:
   build:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        dsm: ["7.0"]
-        arch: ["noarch"]
 
     steps:
       - uses: actions/checkout@v4
 
+      - name: Prepare Webmin payload
+        shell: bash
+        run: |
+          set -euo pipefail
+          WEBMIN_VERSION="2.651"
+          rm -rf src/webmin /tmp/webmin-src
+          mkdir -p /tmp/webmin-src
+          curl -L -o /tmp/webmin.tar.gz "https://github.com/webmin/webmin/archive/refs/tags/${WEBMIN_VERSION}.tar.gz"
+          tar -xzf /tmp/webmin.tar.gz -C /tmp/webmin-src
+          mv "/tmp/webmin-src/webmin-${WEBMIN_VERSION}" src/webmin
+          test -f src/webmin/miniserv.pl
+          test -f src/etc/start
+          test -f scripts/start-stop-status
+          find scripts src/etc -type f -name start-stop-status -o -name start -o -name stop | xargs chmod +x
+
       - name: Build Synology package
         uses: tomgrv/synology-package-builder@v1
         with:
-          dsm: ${{ matrix.dsm }}
-          arch: ${{ matrix.arch }}
+          dsm: "7.0"
+          arch: "geminilake"
           projects: ./
           output: ./dist
+
+      - name: List build output
+        if: always()
+        run: |
+          find ./dist -maxdepth 2 -type f -print || true
 
       - name: Upload SPK artifact
         uses: actions/upload-artifact@v4
         with:
-          name: webmin-spk
+          name: webmin-spk-geminilake
           path: ./dist/*.spk

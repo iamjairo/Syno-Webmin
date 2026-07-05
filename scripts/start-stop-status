@@ -4,10 +4,10 @@ WMEnabled="/var/packages/webmin/enabled"
 WMAPP="/usr/syno/synoman/webman/3rdparty/webmin"
 WMPKG="/var/packages/webmin/target"
 WMVER=""
-[ -f "$WMPKG/etc/version" ] && read -r WMVER < "$WMPKG/etc/version"
+[ -f "$WMPKG/etc/version" ] && IFS= read -r WMVER < "$WMPKG/etc/version"
 WMVERDIR="$WMPKG/webmin-$WMVER"
 WMPERL=""
-[ -f "$WMPKG/etc/perl-path" ] && read -r WMPERL < "$WMPKG/etc/perl-path"
+[ -f "$WMPKG/etc/perl-path" ] && IFS= read -r WMPERL < "$WMPKG/etc/perl-path"
 # nicht mehr benötigt, da kein Perl-Path-Patch ausgeführt wird
 #USEPERL="/usr/bin/perl"
 #if [ -f /opt/bin/perl ] ; then USEPERL="/opt/bin/perl"; fi

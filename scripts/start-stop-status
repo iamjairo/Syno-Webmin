@@ -3,14 +3,16 @@ LOG="/var/packages/webmin/log"
 WMEnabled="/var/packages/webmin/enabled"
 WMAPP="/usr/syno/synoman/webman/3rdparty/webmin"
 WMPKG="/var/packages/webmin/target"
-WMVER="`cat $WMPKG/etc/version`"
+WMVER=""
+[ -f "$WMPKG/etc/version" ] && WMVER="`cat $WMPKG/etc/version`"
 WMVERDIR="$WMPKG/webmin-$WMVER"
-WMPERL="`cat $WMPKG/etc/perl-path`"
+WMPERL=""
+[ -f "$WMPKG/etc/perl-path" ] && WMPERL="`cat $WMPKG/etc/perl-path`"
 # nicht mehr benötigt, da kein Perl-Path-Patch ausgeführt wird
 #USEPERL="/usr/bin/perl"
 #if [ -f /opt/bin/perl ] ; then USEPERL="/opt/bin/perl"; fi
 PSCMD="/bin/ps"
-[ "${DSMMAJOR}" -ge 6 ] && PSCMD="/bin/ps ax"
+[ -n "${DSMMAJOR}" ] && [ "${DSMMAJOR}" -ge 6 ] && PSCMD="/bin/ps ax"
 
 case $1 in
 start)

@@ -1,0 +1,98 @@
+name: Build and Release SPK
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Update version in INFO.sh and SPK_Pack_Stage.sh
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          sed -i "s/^version=.*/version=\"${VERSION}\"/" INFO.sh
+          sed -i "s/^version=.*/version=\"${VERSION}\"/" SPK_Pack_Stage.sh
+
+      - name: Extract working directory
+        run: |
+          mkdir -p /tmp/webmin-working
+          tar -xJf working/working.tar.xz -C /tmp/webmin-working
+
+      - name: Build package.tgz
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          WORKING=/tmp/webmin-working
+          PKGDIR=/tmp/webmin-pkg
+          mkdir -p ${PKGDIR}
+
+          # Contents from working.tar.xz
+          cp -a ${WORKING}/etc      ${PKGDIR}/
+          cp -a ${WORKING}/man      ${PKGDIR}/
+          cp -a ${WORKING}/reset    ${PKGDIR}/
+          cp -a ${WORKING}/scripts  ${PKGDIR}/
+          cp -a ${WORKING}/update   ${PKGDIR}/
+
+          # UI from repo
+          cp -a ui ${PKGDIR}/
+
+          # Binary stub
+          mkdir -p ${PKGDIR}/usr/local/bin
+          printf '#!/bin/sh\n/var/packages/webmin/scripts/start-stop-status "$@"\n' \
+            > ${PKGDIR}/usr/local/bin/webmin
+          chmod 755 ${PKGDIR}/usr/local/bin/webmin
+
+          chmod -R 755 ${PKGDIR}
+          tar -C ${PKGDIR} -czf /tmp/package.tgz .
+          chmod 755 /tmp/package.tgz
+
+      - name: Generate INFO file
+        run: |
+          sed '1d' INFO.sh > /tmp/INFO.tmp
+          head -n -2 /tmp/INFO.tmp > /tmp/INFO
+          rm /tmp/INFO.tmp
+
+      - name: Build SPK
+        run: |
+          VERSION="${{ steps.version.outputs.version }}"
+          SPKDIR=/tmp/webmin-spk
+          mkdir -p ${SPKDIR}
+
+          cp /tmp/package.tgz    ${SPKDIR}/
+          cp /tmp/INFO           ${SPKDIR}/
+          cp CHANGELOG           ${SPKDIR}/
+          cp LICENSE             ${SPKDIR}/
+          cp PACKAGE_ICON*.PNG   ${SPKDIR}/
+          cp -a conf             ${SPKDIR}/
+          cp -a scripts          ${SPKDIR}/
+          cp -a WIZARD_UIFILES   ${SPKDIR}/
+
+          chmod -R 755 ${SPKDIR}
+          cd ${SPKDIR}
+          tar --exclude=".git/*" --exclude=".gitignore/*" \
+            -cvf /tmp/webmin-${VERSION}.spk *
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "Webmin ${{ steps.version.outputs.version }}"
+          body: |
+            ## Webmin ${{ steps.version.outputs.version }} for Synology DSM
+
+            Install via **DSM → Package Center → Manual Install** and select the `.spk` file below.
+
+            Webmin will be accessible on **port 10000** after installation.
+          files: /tmp/webmin-${{ steps.version.outputs.version }}.spk
+          draft: false
+          prerelease: false

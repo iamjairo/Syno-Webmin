@@ -4,10 +4,10 @@ WMEnabled="/var/packages/webmin/enabled"
 WMAPP="/usr/syno/synoman/webman/3rdparty/webmin"
 WMPKG="/var/packages/webmin/target"
 WMVER=""
-[ -f "$WMPKG/etc/version" ] && WMVER="`cat $WMPKG/etc/version`"
+[ -f "$WMPKG/etc/version" ] && read -r WMVER < "$WMPKG/etc/version"
 WMVERDIR="$WMPKG/webmin-$WMVER"
 WMPERL=""
-[ -f "$WMPKG/etc/perl-path" ] && WMPERL="`cat $WMPKG/etc/perl-path`"
+[ -f "$WMPKG/etc/perl-path" ] && read -r WMPERL < "$WMPKG/etc/perl-path"
 # nicht mehr benötigt, da kein Perl-Path-Patch ausgeführt wird
 #USEPERL="/usr/bin/perl"
 #if [ -f /opt/bin/perl ] ; then USEPERL="/opt/bin/perl"; fi
@@ -19,15 +19,15 @@ start)
      if [ ! -f "${WMEnabled}" ]; then
           exit 0
      fi
-     cd ${WMPKG}/etc
+     cd "${WMPKG}/etc"
      ./start
      exit 0
 ;;
 stop)
-     cd ${WMPKG}/etc
+     cd "${WMPKG}/etc"
      ./stop
      sleep 1
-     PS="`${PSCMD} | /bin/grep miniserv.pl | /bin/grep -v grep`"
+     PS="$(${PSCMD} | /bin/grep miniserv.pl | /bin/grep -v grep)"
      if [ -z "${PS}" ]; then
         /bin/rm -f /var/log/webmin/miniserv.pid
      fi

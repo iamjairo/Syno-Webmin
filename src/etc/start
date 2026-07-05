@@ -1,0 +1,2 @@
+#!/bin/sh
+exec /usr/bin/perl /var/packages/webmin/target/webmin/miniserv.pl /var/packages/webmin/target/etc/miniserv.conf

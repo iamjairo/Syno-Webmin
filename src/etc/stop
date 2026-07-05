@@ -1,0 +1,16 @@
+#!/bin/sh
+
+/bin/ps aux | /bin/grep '[m]iniserv.pl' | /usr/bin/awk '{print $2}' | while read PID; do
+  /bin/kill "$PID" 2>/dev/null || true
+done
+
+sleep 2
+
+/bin/ps aux | /bin/grep '[m]iniserv.pl' | /usr/bin/awk '{print $2}' | while read PID; do
+  /bin/kill -9 "$PID" 2>/dev/null || true
+done
+
+/bin/rm -f /var/packages/webmin/target/var/miniserv.pid
+/bin/rm -f /var/log/webmin/miniserv.pid
+
+exit 0

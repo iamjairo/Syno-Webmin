@@ -1,0 +1,32 @@
+name: Build SPK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        dsm: ["7.0"]
+        arch: ["noarch"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Build Synology package
+        uses: tomgrv/synology-package-builder@v1
+        with:
+          dsm: ${{ matrix.dsm }}
+          arch: ${{ matrix.arch }}
+          projects: ./
+          output: ./dist
+
+      - name: Upload SPK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: webmin-spk
+          path: ./dist/*.spk
